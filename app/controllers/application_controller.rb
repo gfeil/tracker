@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
 
   private
 
+  # Record the visit for the visitor. Sets a cookie for identification as needed.
   def record_visit
     unless (visit_key = cookies[:id])
       visit_key = SecureRandom.urlsafe_base64(16)
