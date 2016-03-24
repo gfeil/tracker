@@ -16,14 +16,14 @@ class VisitCounter < Redis::Set
     end
 
     def monthly(_date = Date.today)
-      new(WEEKLY, _date)
+      new(MONTHLY, _date)
     end
-  end
 
-  def self.record(visit_key)
-    daily.add(visit_key)
-    weekly.add(visit_key)
-    monthly.add(visit_key)
+    def record(visit_key)
+      daily.add(visit_key)
+      weekly.add(visit_key)
+      monthly.add(visit_key)
+    end
   end
 
   def initialize(_period, _date)
