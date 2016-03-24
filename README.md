@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This sample project demonstrates how to track unique visitors to a web site over any arbitrary calendar period.
+This sample project is a demonstration on how to track unique visitors to a web site over a calendar period.
 
 ## Visitor Identification 
 
@@ -12,35 +12,17 @@ The approach I used for identifying visitors is through cookies. When a visitor 
 
 ## Managing Visitor Information in the Database
 
-Because we want to be able to efficiently count unique visitors for any arbitrary date range, I chose to use a PostgreSQL table to store the results.
+The original specification called for having the ability to track unique visitors over any arbitrary date period. However, as an industry standard practice, web site owners typically are interested in tracking unique visitors over a daily, weekly, or monthly basis. For this reason, I chose to optimize this solution based on this practice.
 
-Following is the relevant table schema:
+An optimal means of maintaining a count of unique users is through use of a Set. By definition, all of the members of a set are unique. Therefore, any attempt to add an that is equivalent by identity equivalent to the current members of a set are ignored.
 
-Column    | Type   | Description           
-:-------: | :----: | --------------------- 
-visit_key | string | visitor cookie value 
-starts_on | date   | starting date for visit 
-ends_on   | date   | ending date for visit
+For persistence I chose to use Redis, which has native support for set data types. Sets contain the IDs of visitors that have visited the site over a given calendar day, week, or month. New sets are instantiated at the start of each respective time period. A set is created for each calendar day, week and month.
 
-The following indexes added to the table:
+At the end of a given day, week, or month, the data accrued in the respective counters may be exported into a database table for maintaining historical statistics. (This has not been included in this sample project.)  
 
-* `[visit_key, ends_on]` used for recording visits.
-* `[starts_on, ends_on]` used for retrieving visitors over a given period.
-
-Each record represents a contiguous period of time that the visitor spent on the site. This helps to reduce the number of records stored over time, particularly when the same visitor accesses the site multiple times on consecutive days.
-
-## Recording the visit
+## Recording the Visit
 
 The visit is recorded using a before_action in the parent ActionController. This filter checks for the existence of the
-_id_ cookie, sets it if it does not exist, and calls _Visitor.record_visit_ to store the visit.
+_id_ cookie, sets it if it does not exist, and calls _VisitCounter.record_ to store it in separate counters that track accrued visitors for the current calendar day, week, and month.
 
-
-## Querying for Unique Visitors
-
-To determine the number of unique visitors over a period of time, the equivalent SQL is called (where _start_date_ and 
-_end_date/_ are the start and end dates for the desired time period)/
-
-```
-SELECT DISTINCT COUNT(visit_key) FROM visitors WHERE (starts_on <= end_date) AND (visitors.ends_on >= start_date)
-```
 

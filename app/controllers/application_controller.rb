@@ -1,3 +1,5 @@
+require 'visit_counter'
+
 class ApplicationController < ActionController::Base
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
@@ -13,7 +15,7 @@ class ApplicationController < ActionController::Base
       visit_key = SecureRandom.urlsafe_base64(16)
       cookies.permanent[:id] = visit_key
     end
-    Visitor.record_visit(visit_key)
+    VisitCounter.record(visit_key)
   end
 
 end
